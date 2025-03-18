@@ -1,0 +1,101 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Customer {
+    id            String       @id @default(cuid()) @db.Uuid
+    name          String
+    email         String       @unique
+    phone         String       @unique
+    password      String
+    address       Json[]
+    customerType  CustomerType @default(INDIVIDUAL)
+    dateOfBirth   DateTime
+    pan           String       @unique
+    settingConfig Json
+
+    account Account[]
+}
+
+enum CustomerType {
+    INDIVIDUAL
+    COMPANY
+}
+
+model Account {
+    accNo       String      @id @default(cuid()) @db.Uuid
+    customerId  String      @db.Uuid
+    ifsc        String
+    accountType AccountType @default(SAVINGS)
+    balance     Float       @default(0)
+    status      Boolean     @default(true)
+    createdOn   DateTime    @default(now())
+    updatedOn   DateTime    @updatedAt
+    deletedOn   DateTime?
+
+    customer Customer @relation(fields: [customerId], references: [id])
+
+    sent     Transaction[] @relation("sent")
+    received Transaction[] @relation("received")
+    loans    Loan[]
+}
+
+enum AccountType {
+    SAVINGS
+    CURRENT
+    FIXED_DEPOSIT
+    RECURRING_DEPOSIT
+}
+
+model Transaction {
+    id              String          @id @default(cuid()) @db.Uuid
+    transactionType TransactionType
+    senderAccNo     String          @db.Uuid
+    receiverAccNo   String          @db.Uuid
+    amount          Float
+    status          Boolean
+    category        String
+    description     String
+    timestamp       DateTime        @default(now())
+    loanId          String?         @db.Uuid
+
+    senderAccount   Account @relation("sent", fields: [senderAccNo], references: [accNo])
+    receiverAccount Account @relation("received", fields: [receiverAccNo], references: [accNo])
+    loan            Loan?   @relation(fields: [loanId], references: [id])
+}
+
+enum TransactionType {
+    DEPOSIT
+    WITHDRAW
+    TRANSFER
+}
+
+model Loan {
+    id              String   @id @default(cuid()) @db.Uuid
+    accNo           String   @db.Uuid
+    loanType        LoanType
+    interestRate    Float
+    principalAmount Float
+    interestAmount  Float
+    term            Int
+    startDate       DateTime
+    endDate         DateTime
+    status          Boolean  @default(true)
+    createdOn       DateTime @default(now())
+    updatedOn       DateTime @updatedAt
+    schedule        Json[]
+    dueAmount       Float
+
+    Account  Account       @relation(fields: [accNo], references: [accNo])
+    payments Transaction[]
+}
+
+enum LoanType {
+    option1
+    option2
+}
