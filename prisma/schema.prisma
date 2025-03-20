@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Customer {
-    id            String       @id @default(cuid()) @db.Uuid
+    id            String       @id @default(uuid()) @db.Uuid
     name          String
     email         String       @unique
     phone         String       @unique
@@ -28,7 +28,7 @@ enum CustomerType {
 }
 
 model Account {
-    accNo       String      @id @default(cuid()) @db.Uuid
+    accNo       String      @id @default(uuid()) @db.Uuid
     customerId  String      @db.Uuid
     ifsc        String
     accountType AccountType @default(SAVINGS)
@@ -53,7 +53,7 @@ enum AccountType {
 }
 
 model Transaction {
-    id              String          @id @default(cuid()) @db.Uuid
+    id              String          @id @default(uuid()) @db.Uuid
     transactionType TransactionType
     senderAccNo     String          @db.Uuid
     receiverAccNo   String          @db.Uuid
@@ -76,7 +76,7 @@ enum TransactionType {
 }
 
 model Loan {
-    id              String   @id @default(cuid()) @db.Uuid
+    id              String   @id @default(uuid()) @db.Uuid
     accNo           String   @db.Uuid
     loanType        LoanType
     interestRate    Float
