@@ -10,6 +10,8 @@ CREATE TYPE "TransactionType" AS ENUM ('DEPOSIT', 'WITHDRAW', 'TRANSFER');
 -- CreateEnum
 CREATE TYPE "LoanType" AS ENUM ('option1', 'option2');
 
+
+
 -- CreateTable
 CREATE TABLE "Customer" (
     "id" UUID NOT NULL,
@@ -28,7 +30,7 @@ CREATE TABLE "Customer" (
 
 -- CreateTable
 CREATE TABLE "Account" (
-    "accNo" UUID NOT NULL,
+    "accNo" TEXT NOT NULL,
     "customerId" UUID NOT NULL,
     "ifsc" TEXT NOT NULL,
     "accountType" "AccountType" NOT NULL DEFAULT 'SAVINGS',
@@ -45,8 +47,8 @@ CREATE TABLE "Account" (
 CREATE TABLE "Transaction" (
     "id" UUID NOT NULL,
     "transactionType" "TransactionType" NOT NULL,
-    "senderAccNo" UUID NOT NULL,
-    "receiverAccNo" UUID NOT NULL,
+    "senderAccNo" TEXT NOT NULL,
+    "receiverAccNo" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "status" BOOLEAN NOT NULL,
     "category" TEXT NOT NULL,
@@ -60,7 +62,7 @@ CREATE TABLE "Transaction" (
 -- CreateTable
 CREATE TABLE "Loan" (
     "id" UUID NOT NULL,
-    "accNo" UUID NOT NULL,
+    "accNo" TEXT NOT NULL,
     "loanType" "LoanType" NOT NULL,
     "interestRate" DOUBLE PRECISION NOT NULL,
     "principalAmount" DOUBLE PRECISION NOT NULL,
@@ -85,6 +87,9 @@ CREATE UNIQUE INDEX "Customer_phone_key" ON "Customer"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Customer_pan_key" ON "Customer"("pan");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Account_accNo_key" ON "Account"("accNo");
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

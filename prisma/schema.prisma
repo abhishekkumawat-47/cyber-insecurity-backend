@@ -20,6 +20,8 @@ model Customer {
     settingConfig Json
 
     account Account[]
+    payee   Payee[] @relation("payee")
+    payer   Payee[] @relation("payer")
 }
 
 enum CustomerType {
@@ -28,7 +30,8 @@ enum CustomerType {
 }
 
 model Account {
-    accNo       String      @id @default(uuid()) @db.Uuid
+    accNo       String      @id @default(dbgenerated()) @unique
+
     customerId  String      @db.Uuid
     ifsc        String
     accountType AccountType @default(SAVINGS)
@@ -43,41 +46,44 @@ model Account {
     sent     Transaction[] @relation("sent")
     received Transaction[] @relation("received")
     loans    Loan[]
+
+    payer   Payee[] 
 }
 
 enum AccountType {
     SAVINGS
     CURRENT
-    FIXED_DEPOSIT
-    RECURRING_DEPOSIT
+    LOAN
+    CREDIT_CARD
+    INVESTMENT
 }
 
 model Transaction {
     id              String          @id @default(uuid()) @db.Uuid
     transactionType TransactionType
-    senderAccNo     String          @db.Uuid
-    receiverAccNo   String          @db.Uuid
+    senderAccNo     String          
+    receiverAccNo   String          
     amount          Float
     status          Boolean
     category        String
-    description     String
+    description     String?
     timestamp       DateTime        @default(now())
     loanId          String?         @db.Uuid
 
     senderAccount   Account @relation("sent", fields: [senderAccNo], references: [accNo])
     receiverAccount Account @relation("received", fields: [receiverAccNo], references: [accNo])
     loan            Loan?   @relation(fields: [loanId], references: [id])
+
 }
 
 enum TransactionType {
-    DEPOSIT
-    WITHDRAW
+    PAYMENT
     TRANSFER
 }
 
 model Loan {
     id              String   @id @default(uuid()) @db.Uuid
-    accNo           String   @db.Uuid
+    accNo           String   
     loanType        LoanType
     interestRate    Float
     principalAmount Float
@@ -96,6 +102,22 @@ model Loan {
 }
 
 enum LoanType {
-    option1
-    option2
+    HOME
+    AUTO
+    PERSONAL
+    STUDENT
+}
+
+model Payee{
+    id          String @id @default(uuid()) @db.Uuid
+    name        String
+    payeeAccNo       String
+    payeeifsc        String
+    payeeCustomerId  String @db.Uuid
+    payerCustomerId  String @db.Uuid
+
+    payeeAccount Account @relation(fields: [payeeAccNo], references: [accNo])
+    payeeCustomer Customer @relation("payee", fields: [payeeCustomerId], references: [id])
+    payerCustomer Customer @relation("payer", fields: [payerCustomerId], references: [id])
+
 }

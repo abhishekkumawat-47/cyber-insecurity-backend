@@ -2,7 +2,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import routes from "./routes/userRoutes"
+import routes from "./routes/UserRoutes"
 
 const app: Application = express();
 
