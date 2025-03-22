@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import express, { Request, Response } from "express";
+import  { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { body, validationResult } from "express-validator";
 import { z } from "zod";
@@ -8,7 +8,6 @@ import jwt from "jsonwebtoken";
 
 
 const prisma = new PrismaClient();
-const router = express();
 
 const CustomerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
