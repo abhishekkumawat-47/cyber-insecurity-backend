@@ -18,7 +18,6 @@ model Customer {
     dateOfBirth   DateTime
     pan           String       @unique
     settingConfig Json
-
     account Account[]
     payee   Payee[] @relation("payee")
     payer   Payee[] @relation("payer")
@@ -26,12 +25,18 @@ model Customer {
 
 enum CustomerType {
     INDIVIDUAL
-    COMPANY
+    SHOPPING
+    ENTERTAINMENT
+    HOUSING
+    FOOD
+    OTHERS
+
 }
 
-model Account {
-    accNo       String      @id @default(dbgenerated()) @unique
 
+
+model Account {
+    accNo       String      @id @unique
     customerId  String      @db.Uuid
     ifsc        String
     accountType AccountType @default(SAVINGS)
@@ -40,13 +45,10 @@ model Account {
     createdOn   DateTime    @default(now())
     updatedOn   DateTime    @updatedAt
     deletedOn   DateTime?
-
     customer Customer @relation(fields: [customerId], references: [id])
-
     sent     Transaction[] @relation("sent")
     received Transaction[] @relation("received")
     loans    Loan[]
-
     payer   Payee[] 
 }
 
@@ -96,7 +98,6 @@ model Loan {
     updatedOn       DateTime @updatedAt
     schedule        Json[]
     dueAmount       Float
-
     Account  Account       @relation(fields: [accNo], references: [accNo])
     payments Transaction[]
 }
@@ -115,7 +116,7 @@ model Payee{
     payeeifsc        String
     payeeCustomerId  String @db.Uuid
     payerCustomerId  String @db.Uuid
-
+    payeeType        CustomerType @default(INDIVIDUAL)
     payeeAccount Account @relation(fields: [payeeAccNo], references: [accNo])
     payeeCustomer Customer @relation("payee", fields: [payeeCustomerId], references: [id])
     payerCustomer Customer @relation("payer", fields: [payerCustomerId], references: [id])

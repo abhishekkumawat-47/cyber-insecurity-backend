@@ -6,7 +6,7 @@ import { z } from "zod";
 import { RegisterController, validateRegister } from "../controllers/UserControllers";
 
 const prisma = new PrismaClient();
-const router = express();
+const router = express.Router();
 
 router.use(express.json());
 
