@@ -1,12 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
-import bcrypt from "bcrypt";
-import { body, validationResult } from "express-validator";
-import { z } from "zod";
 import { RegisterController, validateRegister } from "../controllers/UserControllers";
+import { AddPayee, deletePayee, EditPayee, fetchPayee } from "../helper/payee";
 
-const prisma = new PrismaClient();
-const router = express.Router();
+const router = express();
 
 router.use(express.json());
 
@@ -22,5 +18,12 @@ router.get('/auth/login', (req: Request, res: Response) => {
 router.post('/auth/register', validateRegister ,
   async (req: express.Request, res: express.Response):Promise<any> => {
     RegisterController(req, res);});
+
+
+router.post('/payee/:payerCustomerId', AddPayee);
+router.get('/payees/:payerCustomerId', fetchPayee)
+router.put('/payee/:payerCustomerId', EditPayee)
+router.delete('/payee/:payerCustomerId', deletePayee)
+
 
 export default router;
