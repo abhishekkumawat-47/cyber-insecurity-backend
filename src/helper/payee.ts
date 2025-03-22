@@ -16,7 +16,6 @@ interface RequestParams {
   payerCustomerId: string;
 }
 
-
 // working well
 export const AddPayee = async (
   req: Request<RequestParams, {}, PayeeRequestBody>,
@@ -28,13 +27,13 @@ export const AddPayee = async (
 
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber
-      }
+        accNo: accountNumber,
+      },
     });
 
     if (!accountExists) {
       res.status(404).json({
-        error: "Account does not exist"
+        error: "Account does not exist",
       });
       return;
     }
@@ -46,8 +45,8 @@ export const AddPayee = async (
     const AlreadyPayeeExists = await prisma.payee.findFirst({
       where: {
         payeeCustomerId: payeeCustomerId,
-        payerCustomerId: payerCustomerId
-      }
+        payerCustomerId: payerCustomerId,
+      },
     });
 
     if (AlreadyPayeeExists) {
@@ -56,7 +55,9 @@ export const AddPayee = async (
     }
 
     if (payeeifsc !== ifsc) {
-      res.status(400).json({ error: "Provided IFSC does not match the account's IFSC" });
+      res
+        .status(400)
+        .json({ error: "Provided IFSC does not match the account's IFSC" });
       return;
     }
 
@@ -69,19 +70,18 @@ export const AddPayee = async (
         payeeifsc,
         payeeCustomerId,
         payerCustomerId,
-      }
+      },
     });
 
     res.status(201).json(payee);
   } catch (error) {
-    console.error('Error creating payee:', error);
+    console.error("Error creating payee:", error);
     res.status(500).json({
-      error: 'Failed to create payee',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to create payee",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
-
 
 // working well
 export const fetchPayee = async (
@@ -92,22 +92,20 @@ export const fetchPayee = async (
     const { payerCustomerId } = req.params;
     const payees = await prisma.payee.findMany({
       where: {
-        payerCustomerId
-      }
+        payerCustomerId,
+      },
     });
 
     res.status(200).json(payees);
-
   } catch (error) {
-    console.error('Error fetch payee:', error);
+    console.error("Error fetch payee:", error);
     res.status(500).json({
-      error: 'Failed to fetch payee',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to fetch payee",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
     return;
   }
 };
-
 
 // working well
 export const EditPayee = async (
@@ -121,13 +119,13 @@ export const EditPayee = async (
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber
-      }
+        accNo: accountNumber,
+      },
     });
 
     if (!accountExists) {
       res.status(404).json({
-        error: "Account does not exist"
+        error: "Account does not exist",
       });
       return;
     }
@@ -138,7 +136,9 @@ export const EditPayee = async (
 
     // Validate IFSC
     if (payeeifsc !== ifsc) {
-      res.status(400).json({ error: "Provided IFSC does not match the account's IFSC" });
+      res
+        .status(400)
+        .json({ error: "Provided IFSC does not match the account's IFSC" });
       return;
     }
 
@@ -146,8 +146,8 @@ export const EditPayee = async (
     const existingPayee = await prisma.payee.findFirst({
       where: {
         payerCustomerId,
-        payeeCustomerId
-      }
+        payeeCustomerId,
+      },
     });
 
     if (!existingPayee) {
@@ -158,12 +158,12 @@ export const EditPayee = async (
     // Update the payee details
     const updatedPayee = await prisma.payee.update({
       where: {
-        id: existingPayee.id  // Ensure we update the correct payee
+        id: existingPayee.id, // Ensure we update the correct payee
       },
       data: {
         name,
         payeeType,
-      }
+      },
     });
 
     res.status(200).json(updatedPayee);
@@ -171,11 +171,10 @@ export const EditPayee = async (
     console.error("Error Editing Payee:", error);
     res.status(500).json({
       error: "Failed to edit payee",
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
-
 
 // working well
 export const deletePayee = async (
@@ -189,13 +188,13 @@ export const deletePayee = async (
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber
-      }
+        accNo: accountNumber,
+      },
     });
 
     if (!accountExists) {
       res.status(404).json({
-        error: "Account does not exist"
+        error: "Account does not exist",
       });
       return;
     }
@@ -206,7 +205,9 @@ export const deletePayee = async (
 
     // Validate IFSC
     if (payeeifsc !== ifsc) {
-      res.status(400).json({ error: "Provided IFSC does not match the account's IFSC" });
+      res
+        .status(400)
+        .json({ error: "Provided IFSC does not match the account's IFSC" });
       return;
     }
 
@@ -214,8 +215,8 @@ export const deletePayee = async (
     const existingPayee = await prisma.payee.findFirst({
       where: {
         payerCustomerId,
-        payeeCustomerId
-      }
+        payeeCustomerId,
+      },
     });
 
     if (!existingPayee) {
@@ -232,16 +233,15 @@ export const deletePayee = async (
       },
     });
 
-    res.status(200).json({ 
-      deletePayee, 
-      message: "Payee deleted successfully" 
+    res.status(200).json({
+      deletePayee,
+      message: "Payee deleted successfully",
     });
-    
   } catch (error) {
     console.error("Error Deleting Payee:", error);
     res.status(500).json({
       error: "Failed to Delete payee",
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
