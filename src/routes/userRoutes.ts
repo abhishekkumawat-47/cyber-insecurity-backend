@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { RegisterController, validateRegister } from "../controllers/UserControllers";
-import { AddPayee, deletePayee, EditPayee, fetchPayee } from "../helper/payee";
+import { AddPayee, CheckPayeeName, deletePayee, EditPayee, fetchPayee } from "../helper/payee";
 
 const router = express();
 
@@ -24,6 +24,7 @@ router.post('/payee/:payerCustomerId', AddPayee);
 router.get('/payees/:payerCustomerId', fetchPayee)
 router.put('/payee/:payerCustomerId', EditPayee)
 router.delete('/payee/:payerCustomerId', deletePayee)
+router.get('/payee/name', CheckPayeeName)
 
 
 export default router;
