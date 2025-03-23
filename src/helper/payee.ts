@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 interface PayeeRequestBody {
   name: string;
   payeeifsc: string;
-  accountNumber: string;
+  payeeAccNo: string;
   payerCustomerId: string;
   payeeCustomerId: string;
   payeeType: CustomerType;
@@ -22,12 +22,12 @@ export const AddPayee = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, payeeifsc, accountNumber, payeeType } = req.body;
+    const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
     const { payerCustomerId } = req.params;
 
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber,
+        accNo: payeeAccNo,
       },
     });
 
@@ -65,7 +65,7 @@ export const AddPayee = async (
     const payee = await prisma.payee.create({
       data: {
         name,
-        payeeAccNo: accountNumber,
+        payeeAccNo,
         payeeType,
         payeeifsc,
         payeeCustomerId,
@@ -113,13 +113,13 @@ export const EditPayee = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, payeeifsc, accountNumber, payeeType } = req.body;
+    const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
     const { payerCustomerId } = req.params;
 
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber,
+        accNo: payeeAccNo,
       },
     });
 
@@ -182,13 +182,13 @@ export const deletePayee = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, payeeifsc, accountNumber, payeeType } = req.body;
+    const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
     const { payerCustomerId } = req.params;
 
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
       where: {
-        accNo: accountNumber,
+        accNo: payeeAccNo,
       },
     });
 
@@ -241,6 +241,41 @@ export const deletePayee = async (
     console.error("Error Deleting Payee:", error);
     res.status(500).json({
       error: "Failed to Delete payee",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+// working well
+export const CheckPayeeName = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { payeeifsc, payeeAccNo } = req.body;
+    const account = await prisma.account.findUnique({
+      where: {
+        ifsc: payeeifsc,
+        accNo: payeeAccNo,
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    if (!account) {
+      res.status(404).json({
+        error: "Account does not exist",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      customerName: account.customer.name,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to Find Name of payee",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
