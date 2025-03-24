@@ -4,6 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import userRoutes from "./routes/userRoutes";
 import accountRoutes from "./routes/accountRoutes";
+import transroutes from "./routes/transactionRoutes"
+import payroute from "./routes/loanRoutes"
 
 const app: Application = express();
 
@@ -17,7 +19,8 @@ app.use(morgan("dev"));
 // Routes
 app.use("/api", userRoutes);
 app.use("/api", accountRoutes);
-
+app.use("/api", transroutes);
+app.use("/api", payroute);
 // New Hello World Route
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
