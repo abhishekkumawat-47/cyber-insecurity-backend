@@ -6,11 +6,14 @@ import userRoutes from "./routes/userRoutes";
 import accountRoutes from "./routes/accountRoutes";
 
 const app: Application = express();
+const FRONTEND_URL = process.env.FRONTEND_URL
+const SECRET_KEY = process.env.SECRET_KEY
+
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 
@@ -20,7 +23,7 @@ app.use("/api", accountRoutes);
 
 // New Hello World Route
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World");
+  res.json({"msg":"Hello World"});
 });
 
 // Error Handling Middleware

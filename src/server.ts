@@ -1,8 +1,6 @@
-import dotenv from "dotenv";
 import http from "http";
 import app from "./app";
 
-dotenv.config(); // Load environment variables
 
 const PORT: number = parseInt(process.env.PORT || "5000", 10);
 
