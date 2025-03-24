@@ -13,14 +13,88 @@ model Customer {
     email         String       @unique
     phone         String       @unique
     password      String
-    address       Json[]
     customerType  CustomerType @default(INDIVIDUAL)
     dateOfBirth   DateTime
     pan           String       @unique
     settingConfig Json
-    account Account[]
-    payee   Payee[] @relation("payee")
-    payer   Payee[] @relation("payer")
+    address       Json
+    account       Account[]
+    payee         Payee[]      @relation("payee")
+    payer         Payee[]      @relation("payer")
+}
+
+model Account {
+    accNo       String        @id @unique
+    customerId  String        @db.Uuid
+    ifsc        String
+    accountType AccountType   @default(SAVINGS)
+    balance     Float         @default(0)
+    status      Boolean       @default(true)
+    createdOn   DateTime      @default(now())
+    updatedOn   DateTime      @updatedAt
+    deletedOn   DateTime?
+    investment  Json[]
+    customer    Customer      @relation(fields: [customerId], references: [id])
+    loans       Loan[]
+    payer       Payee[]
+    received    Transaction[] @relation("received")
+    sent        Transaction[] @relation("sent")
+}
+
+model Transaction {
+    id              String          @id @default(uuid()) @db.Uuid
+    transactionType TransactionType
+    senderAccNo     String
+    receiverAccNo   String
+    amount          Float
+    status          Boolean
+    category        String
+    description     String?
+    timestamp       DateTime        @default(now())
+    loanId          String?         @db.Uuid
+    loan            Loan?           @relation(fields: [loanId], references: [id])
+    receiverAccount Account         @relation("received", fields: [receiverAccNo], references: [accNo])
+    senderAccount   Account         @relation("sent", fields: [senderAccNo], references: [accNo])
+}
+
+model Loan {
+    id              String        @id @default(uuid()) @db.Uuid
+    loanType        LoanType
+    interestRate    Float
+    principalAmount Float
+    interestAmount  Float
+    term            Int
+    startDate       DateTime
+    endDate         DateTime
+    status          Boolean       @default(true)
+    createdOn       DateTime      @default(now())
+    updatedOn       DateTime      @updatedAt
+    schedule        Json[]
+    dueAmount       Float
+    accNo           String
+    Account         Account       @relation(fields: [accNo], references: [accNo])
+    payment         Transaction[]
+}
+
+model Payee {
+    id              String       @id @default(uuid()) @db.Uuid
+    name            String
+    payeeAccNo      String
+    payeeifsc       String
+    payeeCustomerId String       @db.Uuid
+    payerCustomerId String       @db.Uuid
+    payeeType       CustomerType @default(INDIVIDUAL)
+    payeeAccount    Account      @relation(fields: [payeeAccNo], references: [accNo])
+    payeeCustome    Customer     @relation("payee", fields: [payeeCustomerId], references: [id])
+    payerCustomer   Customer     @relation("payer", fields: [payerCustomerId], references: [id])
+}
+
+model Stock {
+    id        String   @id @default(uuid()) @db.Uuid
+    symbol    String   @unique
+    name      String
+    price     Float
+    updatedOn DateTime @updatedAt
 }
 
 enum CustomerType {
@@ -30,26 +104,6 @@ enum CustomerType {
     HOUSING
     FOOD
     OTHERS
-
-}
-
-
-
-model Account {
-    accNo       String      @id @unique
-    customerId  String      @db.Uuid
-    ifsc        String
-    accountType AccountType @default(SAVINGS)
-    balance     Float       @default(0)
-    status      Boolean     @default(true)
-    createdOn   DateTime    @default(now())
-    updatedOn   DateTime    @updatedAt
-    deletedOn   DateTime?
-    customer Customer @relation(fields: [customerId], references: [id])
-    sent     Transaction[] @relation("sent")
-    received Transaction[] @relation("received")
-    loans    Loan[]
-    payer   Payee[] 
 }
 
 enum AccountType {
@@ -60,46 +114,9 @@ enum AccountType {
     INVESTMENT
 }
 
-model Transaction {
-    id              String          @id @default(uuid()) @db.Uuid
-    transactionType TransactionType
-    senderAccNo     String          
-    receiverAccNo   String          
-    amount          Float
-    status          Boolean
-    category        String
-    description     String?
-    timestamp       DateTime        @default(now())
-    loanId          String?         @db.Uuid
-
-    senderAccount   Account @relation("sent", fields: [senderAccNo], references: [accNo])
-    receiverAccount Account @relation("received", fields: [receiverAccNo], references: [accNo])
-    loan            Loan?   @relation(fields: [loanId], references: [id])
-
-}
-
 enum TransactionType {
     PAYMENT
     TRANSFER
-}
-
-model Loan {
-    id              String   @id @default(uuid()) @db.Uuid
-    accNo           String   
-    loanType        LoanType
-    interestRate    Float
-    principalAmount Float
-    interestAmount  Float
-    term            Int
-    startDate       DateTime
-    endDate         DateTime
-    status          Boolean  @default(true)
-    createdOn       DateTime @default(now())
-    updatedOn       DateTime @updatedAt
-    schedule        Json[]
-    dueAmount       Float
-    Account  Account       @relation(fields: [accNo], references: [accNo])
-    payments Transaction[]
 }
 
 enum LoanType {
@@ -107,18 +124,4 @@ enum LoanType {
     AUTO
     PERSONAL
     STUDENT
-}
-
-model Payee{
-    id          String @id @default(uuid()) @db.Uuid
-    name        String
-    payeeAccNo       String
-    payeeifsc        String
-    payeeCustomerId  String @db.Uuid
-    payerCustomerId  String @db.Uuid
-    payeeType        CustomerType @default(INDIVIDUAL)
-    payeeAccount Account @relation(fields: [payeeAccNo], references: [accNo])
-    payeeCustomer Customer @relation("payee", fields: [payeeCustomerId], references: [id])
-    payerCustomer Customer @relation("payer", fields: [payerCustomerId], references: [id])
-
 }
