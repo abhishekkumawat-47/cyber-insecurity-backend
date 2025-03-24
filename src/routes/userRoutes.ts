@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import { LoginController, RegisterController} from "../controllers/UserControllers";
-import { AddPayee, deletePayee, EditPayee, fetchPayee } from "../helper/payee";
+import { AddPayee, CheckPayeeName, deletePayee, EditPayee, fetchPayee } from "../helper/payee";
 
-const router = express.Router(); 
+const router = express(); 
 
 router.use(express.json());
 
@@ -12,9 +12,10 @@ router.post("/auth/register" , RegisterController )
 
 
 router.post('/payee/:payerCustomerId', AddPayee);
-router.get('/payee/:payerCustomerId', fetchPayee)
+router.get('/payees/:payerCustomerId', fetchPayee)
 router.put('/payee/:payerCustomerId', EditPayee)
 router.delete('/payee/:payerCustomerId', deletePayee)
+router.get('/payee/name',CheckPayeeName)
 
 
 export default router;
