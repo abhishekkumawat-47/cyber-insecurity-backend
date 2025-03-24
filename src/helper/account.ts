@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // Add TypeScript declaration for the generateUniqueAccountNumber function
 
 export async function generateUniqueAccountNumber(): Promise<string> {
-  let accNo: string;
+  let accNo: string = '';
   let exists = true;
 
   while (exists) {

@@ -73,13 +73,14 @@ router.get("/byIdTransactions/:id", async(req: Request, res: Response) => {
 
 })
 
-router.get("/bySenderAccTransactions/:SenderAcc", async(req: Request, res: Response) => {
+router.get("/bySenderAccTransactions/:SenderAcc", async(req: Request, res: Response): Promise<void> => {
     
 
     try {
         const { SenderAcc } = req.params;
         if(!SenderAcc){
             res.status(400).json({error: "Sender Account Number is required"})
+            return;
         }
         
     const transaction = await prisma.transaction.findMany({
@@ -101,11 +102,12 @@ router.get("/bySenderAccTransactions/:SenderAcc", async(req: Request, res: Respo
 
 })
 
-router.get("/byUserAcc/:Acc",async(req: Request, res: Response) => {
+router.get("/byUserAcc/:Acc", async (req: Request, res: Response): Promise<void> => {
   try {
     const { Acc } = req.params;
     if (!Acc) {
-      return res.status(400).json({ error: "Sender Account Number is required" });
+     res.status(400).json({ error: "Sender Account Number is required" });
+     return;
     }
 
     // Fetch transactions where the user is the sender or receiver
@@ -136,12 +138,13 @@ router.get("/byUserAcc/:Acc",async(req: Request, res: Response) => {
 });
 
 
-router.post("/transactions", async (req, res) => {
+router.post("/transactions", async (req:Request, res:Response): Promise<void> => {
     try {
         const { senderAccNo, receiverAccNo, amount, transactionType, status, category, description} = req.body;
         
         if(senderAccNo === receiverAccNo){
             res.status(400).send({error: "Sender and Receiver Account Number cannot be the same"})
+            return;
         }
         const newTransaction = await prisma.transaction.create({
             data: {
