@@ -6,18 +6,23 @@ import userRoutes from "./routes/userRoutes";
 import accountRoutes from "./routes/accountRoutes";
 import transroutes from "./routes/transactionRoutes"
 import payroute from "./routes/loanRoutes"
+import cookieParser from "cookie-parser";
+
+
+
 
 const app: Application = express();
-const FRONTEND_URL = process.env.FRONTEND_URL
-const SECRET_KEY = process.env.SECRET_KEY
+
+
 
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(helmet());
 app.use(morgan("dev"));
+app.use(cookieParser())
 
 // Routes
 app.use("/api", userRoutes);

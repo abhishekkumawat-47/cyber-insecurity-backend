@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 async function clearDB() {
     try {
         const deleteTransactions = prisma.transaction.deleteMany({});
-        const deleteAccounts = prisma.account.deleteMany({});
-        const deleteCustomers = prisma.customer.deleteMany({});
+        // const deleteAccounts = prisma.account.deleteMany({});
+        // const deleteCustomers = prisma.customer.deleteMany({});
 
         await prisma.$transaction([deleteTransactions, deleteAccounts, deleteCustomers]);
         console.log('Cleared all tables in the database');
