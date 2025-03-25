@@ -15,7 +15,7 @@ router.post('/payee/:payerCustomerId', AddPayee);
 router.get('/payees/:payerCustomerId', fetchPayee)
 router.put('/payee/:payerCustomerId', EditPayee)
 router.delete('/payee/:payerCustomerId', deletePayee)
-router.get('/payee/name',CheckPayeeName)
+router.post('/payees/name',CheckPayeeName)
 
 
 export default router;
