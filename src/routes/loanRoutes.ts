@@ -26,7 +26,7 @@ router.get(
       where: { id },
       include: {
         Account: true,
-        payments: true,
+        payment: true,
       },
     });
     res.json(loans);
