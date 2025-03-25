@@ -182,7 +182,7 @@ export const deletePayee = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
+    const { payeeAccNo } = req.body;
     const { payerCustomerId } = req.params;
 
     // Check if the account exists
@@ -201,15 +201,6 @@ export const deletePayee = async (
 
     // Get the payee's customer ID from the account
     const payeeCustomerId = accountExists.customerId;
-    const ifsc = accountExists.ifsc;
-
-    // Validate IFSC
-    if (payeeifsc !== ifsc) {
-      res
-        .status(400)
-        .json({ error: "Provided IFSC does not match the account's IFSC" });
-      return;
-    }
 
     // Ensure the payee exists for this payer
     const existingPayee = await prisma.payee.findFirst({
@@ -247,36 +238,63 @@ export const deletePayee = async (
 };
 
 // working well
-export const CheckPayeeName = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { payeeifsc, payeeAccNo } = req.body;
-    const account = await prisma.account.findUnique({
-      where: {
-        ifsc: payeeifsc,
-        accNo: payeeAccNo,
-      },
-      include: {
-        customer: true,
-      },
-    });
+  export const CheckPayeeName = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { payeeifsc, payeeAccNo } = req.body.data;
+      // console.log(payeeifsc , payeeAccNo)
+      // console.log("Request Body:", req.body);
 
-    if (!account) {
-      res.status(404).json({
-        error: "Account does not exist",
+      if (!payeeifsc || !payeeAccNo) {
+         res.status(400).json({
+          error: "Missing required fields: ifsc, payeeAccNo",
+          details: {
+            requiredFields: ["payeeifsc", "payeeAccNo"],
+            providedFields: Object.keys(req.body)
+          }
+        });
+        return;
+      }
+
+      const account = await prisma.account.findUnique({
+        where: {
+          ifsc: payeeifsc,
+          accNo: payeeAccNo,
+        },
+        include: {
+          customer: true,
+        },
       });
-      return;
-    }
 
-    res.status(200).json({
-      customerName: account.customer.name,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: "Failed to Find Name of payee",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-};
+      if (!account) {
+        res.status(404).json({
+          error: "Account does not exist",
+        });
+        return;
+      }
+
+      if (!account.customer || !account.customer.name) {
+         res.status(400).json({
+          error: "Invalid account data",
+          details: {
+            message: "Customer information is missing or incomplete"
+          }
+        });
+        return;
+      }
+  
+
+      res.status(200).json({
+        customerName: account.customer.name,
+      });
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        error: "Failed to Find Name of payee",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+
+    }
+  };
