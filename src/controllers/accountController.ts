@@ -7,8 +7,7 @@ import { generateUniqueAccountNumber } from "../helper/account";
 
 const prisma = new PrismaClient();
 
-// const accNo = generateUniqueAccountNumber();
-// console.log(accNo);
+
 // Schema validation using Zod
 const AccountSchema = z.object({
   customerId: z.string().uuid("Invalid customer ID format"),

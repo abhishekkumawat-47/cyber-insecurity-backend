@@ -16,31 +16,80 @@ interface CustomerBody {
   dataOfBirth: Date;
   pan: string;
   settingConfig: any;
-  address: any[];
+  address: any;
 }
 
 const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(10),
-  password: z.string().min(8),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long" }),
+  email: z.string().email({ message: "Invalid email address" }),
+  phone: z
+    .string()
+    .min(10, { message: "Phone number must be at least 10 digits long" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" }),
   dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/),
+  pan: z
+    .string()
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { message: "Invalid PAN format" }),
   settingConfig: z.any(),
-  address: z.array(z.any()),
+  address: z.any(),
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
-export const LoginController = async (req: Request, res: Response):Promise<void> => {
+const editUserSchema = z.object({
+  id: z.string().uuid({ message: "Invalid user ID" }),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long" })
+    .optional(),
+  email: z.string().email({ message: "Invalid email address" }).optional(),
+  phone: z
+    .string()
+    .min(10, { message: "Phone number must be at least 10 digits long" })
+    .optional(),
+  dateOfBirth: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    })
+    .optional(),
+  pan: z
+    .string()
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { message: "Invalid PAN format" })
+    .optional(),
+  settingConfig: z.any().optional(),
+  address: z.any().optional(),
+});
+
+export const CookieReturn = async (
+  req: Request,
+  res: Response
+): Promise<void> => {};
+
+export const LoginController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  console.log(req.body);
+
   const parseResult = loginSchema.safeParse(req.body);
   if (!parseResult.success) {
-    res.status(400).json({ errors: parseResult.error.errors });
+    const errors = parseResult.error.errors.map((err) => ({
+      field: err.path.join("."),
+      message: err.message,
+    }));
+    res.status(400).json({ errors });
     return;
   }
 
@@ -63,21 +112,26 @@ export const LoginController = async (req: Request, res: Response):Promise<void>
       return;
     }
 
-    if (!process.env.SECRET_KEY) {
-      throw new Error("SECRET_KEY is not defined");
+    if (!process.env.JWT_SEC) {
+      throw new Error("JWT_SEC is not defined");
     }
-    const token = jwt.sign({ email }, process.env.SECRET_KEY, {
-      expiresIn: "3h",
-    });
-    res.cookie("token", token, { httpOnly: true });
 
-    const { password: _, ...userWithoutPassword } = user;
-    res.status(200).json(userWithoutPassword);
-    return;
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SEC, {
+      expiresIn: "24h",
+    });
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.status(200).json({ userId: user.id });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-    return;
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
 
@@ -85,9 +139,14 @@ export const RegisterController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  console.log(req.body);
   const parseResult = registerSchema.safeParse(req.body);
   if (!parseResult.success) {
-    res.status(400).json({ errors: parseResult.error.errors });
+    const errors = parseResult.error.errors.map((err) => ({
+      field: err.path.join("."),
+      message: err.message,
+    }));
+    res.status(400).json({ errors });
     return;
   }
   const {
@@ -128,10 +187,10 @@ export const RegisterController = async (
       },
     });
 
-    if (!process.env.SECRET_KEY) {
-      throw new Error("SECRET_KEY is not defined");
+    if (!process.env.JWT_SEC) {
+      throw new Error("JWT_SEC is not defined");
     }
-    const token = jwt.sign({ email }, process.env.SECRET_KEY, {
+    const token = jwt.sign({ email }, process.env.JWT_SEC, {
       expiresIn: "3h",
     });
     res.cookie("token", token, { httpOnly: true });
@@ -144,5 +203,90 @@ export const RegisterController = async (
     console.error("Registration error:", error);
     res.status(500).json({ error: "Internal Server Error" });
     return;
+  }
+};
+
+export const EditUserController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const parseResult = editUserSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    const errors = parseResult.error.errors.map((err) => ({
+      field: err.path.join("."),
+      message: err.message,
+    }));
+    res.status(400).json({ errors });
+    return;
+  }
+
+  const { id, name, email, phone, dateOfBirth, pan, settingConfig, address } =
+    parseResult.data;
+
+  try {
+    const updatedUser = await prisma.customer.update({
+      where: { id },
+      data: {
+        name,
+        email,
+        phone,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+        pan,
+        settingConfig,
+        address,
+      },
+    });
+    // Don't send password back in the response
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    res.status(201).json(userWithoutPassword);
+  } catch (error) {
+    console.error("Error Editing Customer", error);
+    res.status(500).json({
+      error: "Failed to edit customer",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const EditPasswordController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id, oldPassword, newPassword } = req.body;
+
+    const user = await prisma.customer.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!passwordMatch) {
+      res.status(401).json({ error: "Invalid password" });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.customer.update({
+      where: {
+        id, // Ensure we update the correct payee
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    res.status(200).json("updated");
+  } catch (error) {
+    console.error("Error Editing password", error);
+    res.status(500).json({
+      error: "Failed to edit password",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 };
