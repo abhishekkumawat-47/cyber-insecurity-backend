@@ -9,10 +9,10 @@ const PORT: number = parseInt(process.env.PORT || "5000", 10);
 const server = http.createServer(app);
 
 server.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(process.env.NODE_ENV)
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(process.env.NODE_ENV);
 });
 
 server.on("error", (error) => {
-    console.error("Server error:", error);
+  console.error("Server error:", error);
 });
