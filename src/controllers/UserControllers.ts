@@ -72,6 +72,25 @@ const editUserSchema = z.object({
   address: z.any().optional(),
 });
 
+// Generate a fingerprint for the client based on headers and IP
+function generateClientFingerprint(req: Request): string {
+  const userAgent = req.headers["user-agent"] || "";
+  const ip = req.ip || req.socket.remoteAddress || "";
+
+  // You could add additional client attributes here
+  const rawFingerprint = `${ip}:${userAgent}`;
+
+  // Create a simple hash (in production, use a proper hashing function)
+  let hash = 0;
+  for (let i = 0; i < rawFingerprint.length; i++) {
+    const char = rawFingerprint.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  return hash.toString();
+}
+
 export const CookieReturn = async (
   req: Request,
   res: Response
@@ -116,14 +135,22 @@ export const LoginController = async (
       throw new Error("JWT_SEC is not defined");
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SEC, {
-      expiresIn: "24h",
-    });
+    // Generate client fingerprint
+    const fingerprint = generateClientFingerprint(req);
+
+    // Create token with user ID and fingerprint
+    const token = jwt.sign(
+      { userId: user.id, fingerprint },
+      process.env.JWT_SEC,
+      { expiresIn: "12h" }
+    );
+
+    // Set secure cookie
     res.cookie("token", token, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      secure: true,
-      sameSite: "none",
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
 
     res.status(200).json({ userId: user.id });
@@ -190,10 +217,24 @@ export const RegisterController = async (
     if (!process.env.JWT_SEC) {
       throw new Error("JWT_SEC is not defined");
     }
-    const token = jwt.sign({ email }, process.env.JWT_SEC, {
-      expiresIn: "3h",
+
+    // Generate client fingerprint
+    const fingerprint = generateClientFingerprint(req);
+
+    // Create token with user ID and fingerprint
+    const token = jwt.sign(
+      { userId: result.id, fingerprint },
+      process.env.JWT_SEC,
+      { expiresIn: "12h" }
+    );
+
+    // Set secure cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
-    res.cookie("token", token, { httpOnly: true });
 
     // Don't send password back in the response
     const { password: _, ...userWithoutPassword } = result;

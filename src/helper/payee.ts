@@ -12,13 +12,13 @@ interface PayeeRequestBody {
   payeeType: CustomerType;
 }
 
-interface RequestParams {
-  payerCustomerId: string;
+interface AuthenticatedRequest extends Request {
+  user?: { id: string }; // Adjust this based on your user object structure
 }
 
 // working well
 export const AddPayee = async (
-  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -82,16 +82,19 @@ export const AddPayee = async (
     res.status(201).json(payee);
   } catch (error) {
     console.error("Error creating payee:", error);
-    res.status(500).json({
-      error: "Failed to create payee",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    if (!res.headersSent) { 
+      res.status(500).json({
+        error: "Failed to create payee",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+      return;
+    }
   }
 };
 
 // working well
 export const fetchPayee = async (
-  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -119,7 +122,7 @@ export const fetchPayee = async (
 
 // working well
 export const EditPayee = async (
-  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {
@@ -194,7 +197,7 @@ export const EditPayee = async (
 
 // working well
 export const deletePayee = async (
-  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
+  req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
   try {

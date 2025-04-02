@@ -5,14 +5,14 @@ import { AddPayee, CheckPayeeName, deletePayee, EditPayee, fetchPayee } from "..
 import { exportTransactionHistory } from "../helper/ExportAsPDF";
 import { forgotPassword } from "../helper/ForgetPassword";
 
-import { isLoggedIn } from "../middleware/IsLoggedIn";
+import { CookieSend, isLoggedIn } from "../middleware/IsLoggedIn";
 
 
 const router = express(); 
 
 router.use(express.json());
 
-router.get("/auth/cookieReturn", isLoggedIn )
+router.get("/auth/cookieReturn", CookieSend )
 router.post('/auth/login', LoginController)
 router.post("/auth/register" , RegisterController )
 router.put("/auth/updatePassword", isLoggedIn ,EditPasswordController)
