@@ -316,7 +316,7 @@ export const deletePayee = async (
       res.status(500).json({
         error: "Failed to Find Name of payee",
         message: error instanceof Error ? error.message : "Unknown error",
-      });
+      });   
 
     }
   };
