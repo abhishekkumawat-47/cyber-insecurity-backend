@@ -29,8 +29,20 @@ app.get("/accounts/:id", accountController.getAccountById);
 
 // GET endpoint to fetch all accounts for a customer
 app.get(
-  "/customers/:customerId/accounts",
+  "/customers/accounts/:customerId",
   accountController.getAccountsByCustomerId
+);
+
+// POST endpoint to transfer money between own accounts
+app.post(
+  "/accounts/transfer",
+  [
+    body("fromAccountNo").isString().notEmpty(),
+    body("toAccountNo").isString().notEmpty(),
+    body("amount").isFloat({ min: 0.01 }),
+    body("description").isString().optional(),
+  ],
+  accountController.transferBetweenOwnAccounts
 );
 
 export default app;
