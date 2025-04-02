@@ -7,6 +7,7 @@ import accountRoutes from "./routes/accountRoutes";
 import transroutes from "./routes/transactionRoutes"
 import payroute from "./routes/loanRoutes"
 import cookieParser from "cookie-parser";
+import { isLoggedIn } from "./middleware/IsLoggedIn";
 
 
 
@@ -26,9 +27,9 @@ app.use(cookieParser())
 
 // Routes
 app.use("/api", userRoutes);
-app.use("/api", accountRoutes);
-app.use("/api", transroutes);
-app.use("/api", payroute);
+app.use("/api", isLoggedIn ,accountRoutes);
+app.use("/api", isLoggedIn , transroutes);
+app.use("/api", isLoggedIn , payroute);
 // New Hello World Route
 app.get("/", (req: Request, res: Response) => {
   res.json({"msg":"Hello World"});

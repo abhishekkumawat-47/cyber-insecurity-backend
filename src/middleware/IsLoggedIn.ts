@@ -33,6 +33,7 @@ export const isLoggedIn = (req: Request, res: Response, next: NextFunction): voi
     const decoded = jwt.verify(token, process.env.JWT_SEC) as DecodedToken;
     console.log(decoded)
     req.user = { id: decoded.userId };
+    res.status(200).json(req.user);
     next();
   } catch (error:any) {
     res.status(500).json({ message: error.message });

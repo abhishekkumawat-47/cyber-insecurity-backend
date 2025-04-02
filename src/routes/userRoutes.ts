@@ -15,8 +15,8 @@ router.use(express.json());
 router.get("/auth/cookieReturn", isLoggedIn )
 router.post('/auth/login', LoginController)
 router.post("/auth/register" , RegisterController )
-router.put("/auth/updatePassword", EditPasswordController)
-router.put("/auth/updateUser", EditUserController)
+router.put("/auth/updatePassword", isLoggedIn ,EditPasswordController)
+router.put("/auth/updateUser", isLoggedIn ,EditUserController)
 
 
 
@@ -26,9 +26,9 @@ router.put('/payee/:payerCustomerId', isLoggedIn, EditPayee)
 router.delete('/payee/:payerCustomerId', isLoggedIn, deletePayee)
 router.post('/payees/name', isLoggedIn,CheckPayeeName)
 
-router.get('/export-pdf/:accNo',exportTransactionHistory)
+router.get('/export-pdf/:accNo', isLoggedIn ,exportTransactionHistory)
 
-router.post('/forgetpassword',forgotPassword)
+router.post('/forgetpassword', isLoggedIn ,forgotPassword)
 
 
 export default router;

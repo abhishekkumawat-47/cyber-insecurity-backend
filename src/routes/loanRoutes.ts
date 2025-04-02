@@ -6,9 +6,6 @@ const router = express.Router();
 
 router.use(express.json());
 
-router.get("/", (req: Request, res: Response) => {
-  res.send("paise de lawde");
-});
 
 router.get(
   "/loans",
