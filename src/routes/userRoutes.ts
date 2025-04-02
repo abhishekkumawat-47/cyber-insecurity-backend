@@ -20,11 +20,11 @@ router.put("/auth/updateUser", EditUserController)
 
 
 
-router.post('/payee/:payerCustomerId', AddPayee);
-router.get('/payees/:payerCustomerId', fetchPayee)
-router.put('/payee/:payerCustomerId', EditPayee)
-router.delete('/payee/:payerCustomerId', deletePayee)
-router.post('/payees/name',CheckPayeeName)
+router.post('/payee/:payerCustomerId', isLoggedIn ,AddPayee);
+router.get('/payees/:payerCustomerId', isLoggedIn, fetchPayee)
+router.put('/payee/:payerCustomerId', isLoggedIn, EditPayee)
+router.delete('/payee/:payerCustomerId', isLoggedIn, deletePayee)
+router.post('/payees/name', isLoggedIn,CheckPayeeName)
 
 router.get('/export-pdf/:accNo',exportTransactionHistory)
 

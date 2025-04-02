@@ -6,6 +6,16 @@ interface DecodedToken {
   userId: string;
 }
 
+
+// Extend Express Request to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: { id: string };
+    }
+  }
+}
+
 export const isLoggedIn = (req: Request, res: Response, next: NextFunction): void => {
   try {
   
@@ -22,7 +32,8 @@ export const isLoggedIn = (req: Request, res: Response, next: NextFunction): voi
 
     const decoded = jwt.verify(token, process.env.JWT_SEC) as DecodedToken;
     console.log(decoded)
-    res.status(201).json(decoded.userId)
+    req.user = { id: decoded.userId };
+    next();
   } catch (error:any) {
     res.status(500).json({ message: error.message });
   }

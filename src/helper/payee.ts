@@ -18,12 +18,18 @@ interface RequestParams {
 
 // working well
 export const AddPayee = async (
-  req: Request<RequestParams, {}, PayeeRequestBody>,
+  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
   res: Response
 ): Promise<void> => {
   try {
     const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
     const { payerCustomerId } = req.params;
+
+
+    if (req.user?.id !== payerCustomerId) {
+      res.status(403).json({ error: "Unauthorized access to this payer" });
+      return;
+    }
 
     const accountExists = await prisma.account.findUnique({
       where: {
@@ -85,11 +91,15 @@ export const AddPayee = async (
 
 // working well
 export const fetchPayee = async (
-  req: Request<RequestParams, {}, PayeeRequestBody>,
+  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
   res: Response
 ): Promise<void> => {
   try {
     const { payerCustomerId } = req.params;
+    if (req.user?.id !== payerCustomerId) {
+      res.status(403).json({ error: "Unauthorized access to this payer" });
+      return;
+    }
     const payees = await prisma.payee.findMany({
       where: {
         payerCustomerId,
@@ -109,12 +119,18 @@ export const fetchPayee = async (
 
 // working well
 export const EditPayee = async (
-  req: Request<RequestParams, {}, PayeeRequestBody>,
+  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
   res: Response
 ): Promise<void> => {
   try {
     const { name, payeeifsc, payeeAccNo, payeeType } = req.body;
     const { payerCustomerId } = req.params;
+
+    
+    if (req.user?.id !== payerCustomerId) {
+      res.status(403).json({ error: "Unauthorized access to this payer" });
+      return;
+    }
 
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
@@ -178,12 +194,18 @@ export const EditPayee = async (
 
 // working well
 export const deletePayee = async (
-  req: Request<RequestParams, {}, PayeeRequestBody>,
+  req: Request<{ payerCustomerId: string }, {}, PayeeRequestBody>,
   res: Response
 ): Promise<void> => {
   try {
     const { payeeAccNo } = req.body;
     const { payerCustomerId } = req.params;
+
+    
+    if (req.user?.id !== payerCustomerId) {
+      res.status(403).json({ error: "Unauthorized access to this payer" });
+      return;
+    }
 
     // Check if the account exists
     const accountExists = await prisma.account.findUnique({
